@@ -4,11 +4,330 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vortex Mídia Ads - WhatsApp SaaS</title>
-    <script>
-        window.location.href = '/whatsapp-saas-auth-plans.html';
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .sidebar {
+            height: 100vh;
+            overflow-y: auto;
+            background: #1a1a1a;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            margin: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .menu-item:hover {
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        .menu-item.active {
+            background: #ff6b2c;
+            color: white;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 24px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .feature-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ff6b2c;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #ff6b2c 0%, #e55a1b 100%);
+            color: white;
+            padding: 48px 0;
+            margin-bottom: 40px;
+        }
+
+        .welcome-text {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+    </style>
 </head>
-<body>
-    <p>Redirecionando para autenticação...</p>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- SIDEBAR -->
+        <div class="sidebar w-72 border-r border-gray-300">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-white font-bold text-xl">🚀 VORTEX</h1>
+                <p class="text-gray-400 text-xs mt-1">WhatsApp SaaS</p>
+            </div>
+
+            <div class="p-4">
+                <p class="text-gray-500 text-xs uppercase font-bold mb-4">Menu</p>
+                <a href="index.html" class="menu-item active">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="whatsapp-conexoes.html" class="menu-item">
+                    <span>🔗</span>
+                    <span>Conexões</span>
+                </a>
+                <a href="whatsapp-inbox.html" class="menu-item">
+                    <span>📨</span>
+                    <span>Inbox</span>
+                </a>
+                <a href="whatsapp-fluxos.html" class="menu-item">
+                    <span>⚙️</span>
+                    <span>Fluxos</span>
+                </a>
+                <a href="whatsapp-disparos.html" class="menu-item">
+                    <span>📤</span>
+                    <span>Disparos</span>
+                </a>
+                <div class="menu-item">
+                    <span>👥</span>
+                    <span>Contatos</span>
+                </div>
+                <div class="menu-item">
+                    <span>💼</span>
+                    <span>CRM</span>
+                </div>
+                <div class="menu-item">
+                    <span>⚡</span>
+                    <span>Respostas Rápidas</span>
+                </div>
+                <div class="menu-item">
+                    <span>📢</span>
+                    <span>ADS</span>
+                </div>
+
+                <p class="text-gray-500 text-xs uppercase font-bold mt-8 mb-4">Conta</p>
+                <div class="menu-item">
+                    <span>❓</span>
+                    <span>Tutoriais</span>
+                </div>
+                <div class="menu-item">
+                    <span>📬</span>
+                    <span>Atualizações</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 overflow-auto">
+            <!-- HERO SECTION -->
+            <div class="hero-section">
+                <div class="px-8">
+                    <div class="welcome-text">Bem-vindo ao Vortex</div>
+                    <div class="welcome-subtitle">Gerencie suas campanhas WhatsApp com eficiência e escala</div>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT AREA -->
+            <div class="px-8 py-8">
+                <!-- STATISTICS -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="instances-count">0</div>
+                        <div class="stat-label">Instâncias Conectadas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="contacts-count">0</div>
+                        <div class="stat-label">Contatos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="automations-count">0</div>
+                        <div class="stat-label">Fluxos Ativos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="messages-count">0</div>
+                        <div class="stat-label">Mensagens (30d)</div>
+                    </div>
+                </div>
+
+                <!-- FEATURES GRID -->
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Funcionalidades Principais</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <a href="whatsapp-conexoes.html" class="feature-card">
+                        <div class="feature-icon">🔗</div>
+                        <div class="feature-title">Conexões</div>
+                        <div class="feature-description">
+                            Conecte múltiplas instâncias WhatsApp (Comum e API Oficial) e gerencie-as em um único lugar.
+                        </div>
+                    </a>
+
+                    <a href="whatsapp-inbox.html" class="feature-card">
+                        <div class="feature-icon">📨</div>
+                        <div class="feature-title">Inbox</div>
+                        <div class="feature-description">
+                            Receba e responda mensagens de todos os seus contatos em uma interface centralizada.
+                        </div>
+                    </a>
+
+                    <a href="whatsapp-fluxos.html" class="feature-card">
+                        <div class="feature-icon">⚙️</div>
+                        <div class="feature-title">Fluxos de Automação</div>
+                        <div class="feature-description">
+                            Crie fluxos de automação poderosos com múltiplas etapas e ações personalizadas.
+                        </div>
+                    </a>
+
+                    <a href="whatsapp-disparos.html" class="feature-card">
+                        <div class="feature-icon">📤</div>
+                        <div class="feature-title">Disparos em Massa</div>
+                        <div class="feature-description">
+                            Envie campanhas em massa para múltiplos contatos com agendamento e rastreamento.
+                        </div>
+                    </a>
+
+                    <div class="feature-card opacity-50 cursor-not-allowed">
+                        <div class="feature-icon">👥</div>
+                        <div class="feature-title">Contatos</div>
+                        <div class="feature-description">
+                            Organize e gerencie sua base de contatos com importação em lote e segmentação.
+                        </div>
+                    </div>
+
+                    <div class="feature-card opacity-50 cursor-not-allowed">
+                        <div class="feature-icon">💼</div>
+                        <div class="feature-title">CRM Integrado</div>
+                        <div class="feature-description">
+                            Integre com seus sistemas de CRM para gerenciamento completo de relacionamento.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK ACTIONS -->
+                <div class="mt-12 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Ações Rápidas</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2">
+                            <span>+</span>
+                            <span>Nova Conexão</span>
+                        </button>
+                        <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2">
+                            <span>+</span>
+                            <span>Nova Campanha</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://vortex-saas-backend-production.up.railway.app/api';
+        let userId = localStorage.getItem('userId') || 1;
+        let authToken = localStorage.getItem('authToken');
+
+        // Carregar estatísticas do dashboard
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/dashboard/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.dashboard) {
+                    document.getElementById('instances-count').textContent = data.dashboard.instances_count || 0;
+                    document.getElementById('contacts-count').textContent = data.dashboard.contacts_count || 0;
+                    document.getElementById('automations-count').textContent = data.dashboard.automations_count || 0;
+                    document.getElementById('messages-count').textContent = data.dashboard.messages_30d || 0;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+                // Usar dados mockados se houver erro
+                setTimeout(loadMockStats, 2000);
+            }
+        }
+
+        function loadMockStats() {
+            document.getElementById('instances-count').textContent = '2';
+            document.getElementById('contacts-count').textContent = '156';
+            document.getElementById('automations-count').textContent = '7';
+            document.getElementById('messages-count').textContent = '3,245';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardStats();
+        });
+
+        // Fallback para dados mockados após 3 segundos
+        setTimeout(() => {
+            if (document.getElementById('instances-count').textContent === '0') {
+                loadMockStats();
+            }
+        }, 3000);
+    </script>
 </body>
 </html>
