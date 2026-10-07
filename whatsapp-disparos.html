@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disparos - Vortex Mídia Ads</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .sidebar {
+            height: 100vh;
+            overflow-y: auto;
+            background: #1a1a1a;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            margin: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .menu-item:hover {
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        .menu-item.active {
+            background: #ff6b2c;
+            color: white;
+        }
+
+        .btn-primary {
+            background: #ff6b2c;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #e55a1b;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #333;
+            padding: 8px 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #f9f9f9;
+        }
+
+        .campaign-card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .campaign-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-scheduled {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-paused {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-completed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .filter-button {
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            background: white;
+            border: 1px solid #e5e5e5;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .filter-button.active {
+            background: #ff6b2c;
+            color: white;
+            border-color: #ff6b2c;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b2c;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* MODAL STYLES */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            overflow-y: auto;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 40px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .step {
+            margin-bottom: 40px;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            background: #ff6b2c;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+
+        .channel-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .channel-option {
+            border: 2px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .channel-option:hover {
+            border-color: #ff6b2c;
+            background: #fff9f6;
+        }
+
+        .channel-option.selected {
+            border-color: #ff6b2c;
+            background: #fff9f6;
+        }
+
+        .channel-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .channel-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .channel-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #ff6b2c;
+            box-shadow: 0 0 0 3px rgba(255, 107, 44, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .tab-button {
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            color: #ff6b2c;
+            border-bottom-color: #ff6b2c;
+        }
+
+        .template-preview {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #1e3a8a;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .btn-cancel {
+            background: white;
+            color: #333;
+            border: 1px solid #e5e5e5;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-cancel:hover {
+            background: #f9f9f9;
+        }
+
+        .btn-create {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-create:hover {
+            background: #16a34a;
+        }
+
+        .sync-button {
+            background: white;
+            border: 1px solid #e5e5e5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .sync-button:hover {
+            background: #f9f9f9;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- SIDEBAR -->
+        <div class="sidebar w-72 border-r border-gray-300">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-white font-bold text-xl">🚀 VORTEX</h1>
+                <p class="text-gray-400 text-xs mt-1">WhatsApp SaaS</p>
+            </div>
+
+            <div class="p-4">
+                <p class="text-gray-500 text-xs uppercase font-bold mb-4">Menu</p>
+                <div class="menu-item">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </div>
+                <div class="menu-item">
+                    <span>🔗</span>
+                    <span>Conexões</span>
+                </div>
+                <div class="menu-item">
+                    <span>📨</span>
+                    <span>Inbox</span>
+                </div>
+                <div class="menu-item">
+                    <span>⚙️</span>
+                    <span>Fluxos</span>
+                </div>
+                <div class="menu-item active">
+                    <span>📤</span>
+                    <span>Disparos</span>
+                </div>
+                <div class="menu-item">
+                    <span>👥</span>
+                    <span>Contatos</span>
+                </div>
+                <div class="menu-item">
+                    <span>💼</span>
+                    <span>CRM</span>
+                </div>
+                <div class="menu-item">
+                    <span>⚡</span>
+                    <span>Respostas Rápidas</span>
+                </div>
+                <div class="menu-item">
+                    <span>📢</span>
+                    <span>ADS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-1 overflow-auto">
+            <!-- HEADER -->
+            <div class="bg-white border-b border-gray-200">
+                <div class="px-8 py-6 flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Disparos</h1>
+                        <p class="text-gray-600 text-sm mt-1">Crie e gerencie suas campanhas em massa</p>
+                    </div>
+                    <button class="btn-primary flex items-center gap-2" onclick="openNewCampaignModal()">
+                        <span>+</span>
+                        <span>Nova Campanha</span>
+                    </button>
+                </div>
+
+                <!-- STATS -->
+                <div class="px-8 py-4">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-campaigns">0</div>
+                            <div class="stat-label">Total de Campanhas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="active-campaigns">0</div>
+                            <div class="stat-label">Ativas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="completed-campaigns">0</div>
+                            <div class="stat-label">Concluídas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-messages">0</div>
+                            <div class="stat-label">Mensagens Enviadas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTERS -->
+                <div class="px-8 py-4 border-t border-gray-200">
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="filter-button active">Todas</button>
+                        <button class="filter-button">Ativas</button>
+                        <button class="filter-button">Agendadas</button>
+                        <button class="filter-button">Pausadas</button>
+                        <button class="filter-button">Concluídas</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAMPAIGNS LIST -->
+            <div class="px-8 py-6">
+                <div id="campaigns-container">
+                    <!-- Campaigns will be loaded here -->
+                    <div class="text-center py-12">
+                        <p class="text-gray-500 mb-4">Nenhuma campanha criada ainda</p>
+                        <button class="btn-primary" onclick="openNewCampaignModal()">+ Criar Primeira Campanha</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL - NOVA CAMPANHA -->
+    <div id="modal-campanha" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Criar Nova Campanha</h2>
+                <button class="modal-close" onclick="closeNewCampaignModal()">×</button>
+            </div>
+
+            <form id="form-campanha">
+                <!-- STEP 1 - CHANNEL -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Canal</div>
+                    </div>
+
+                    <div class="channel-options">
+                        <div class="channel-option" data-channel="whatsapp" onclick="selectChannel('whatsapp', this)">
+                            <div class="channel-icon">🟢</div>
+                            <div class="channel-name">WhatsApp Comum</div>
+                            <div class="channel-desc">Conecte lendo um QR Code, com código de pareamento ou pelo WhatsApp Web. Funciona com qualquer número.</div>
+                        </div>
+                        <div class="channel-option selected" data-channel="whatsapp-oficial" onclick="selectChannel('whatsapp-oficial', this)">
+                            <div class="channel-icon">✅</div>
+                            <div class="channel-name">API Oficial da Meta</div>
+                            <div class="channel-desc">Você autoriza pela própria Meta, sem ler QR Code. Número verificado e sem risco de bloqueio — em troca, alguns blocos do fluxo não existem.</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="channel" value="whatsapp-oficial">
+                </div>
+
+                <!-- STEP 2 - CONTENT -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Conteúdo</div>
+                    </div>
+
+                    <!-- Campaign Name -->
+                    <div class="form-group">
+                        <label class="form-label">Nome da Campanha</label>
+                        <input
+                            type="text"
+                            id="campaign-name"
+                            class="form-input"
+                            placeholder="Ex: Black Friday 2026"
+                            required
+                        >
+                    </div>
+
+                    <!-- Template vs Flow -->
+                    <div class="form-group">
+                        <div class="tab-buttons">
+                            <button type="button" class="tab-button active" onclick="switchTab('template')">📋 Template aprovado</button>
+                            <button type="button" class="tab-button" onclick="switchTab('flow')">⚙️ Fluxo (começa com template)</button>
+                        </div>
+
+                        <!-- Template Tab -->
+                        <div id="tab-template" class="mt-6">
+                            <div class="two-column">
+                                <div class="form-group">
+                                    <label class="form-label">Número que dispara</label>
+                                    <select id="instance" class="form-select">
+                                        <option value="">Selecione uma instância...</option>
+                                        <option value="1">Andre Maggi Participacoes Ltda · +55 41...</option>
+                                        <option value="2">Bmp Utilidades Domesticas · +55 22...</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <label class="form-label">Template aprovado</label>
+                                        <button type="button" class="sync-button" onclick="syncTemplates()">
+                                            <span>🔄</span>
+                                            <span>Sincronizar</span>
+                                        </button>
+                                    </div>
+                                    <select id="template" class="form-select">
+                                        <option value="">Selecione um template...</option>
+                                        <option value="modelo_001">modelo_001 · en · UTILITY</option>
+                                        <option value="modelo_002">modelo_002 · pt · MARKETING</option>
+                                        <option value="modelo_003">modelo_003 · pt · TRANSACTIONAL</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Template Preview -->
+                            <div class="form-group">
+                                <label class="form-label">Pré-visualização do Template</label>
+                                <div class="template-preview">Olá, {{1}}
+Informamos que {{2}}
+
+{{3}}</div>
+                            </div>
+
+                            <!-- Variables -->
+                            <div class="form-group">
+                                <label class="form-label">Variável 1 (Nome)</label>
+                                <input type="text" class="form-input" placeholder="Digite o valor ou coluna do CSV">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Variável 2 (Mensagem)</label>
+                                <input type="text" class="form-input" placeholder="Digite o valor ou coluna do CSV">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Variável 3 (Link/Conteúdo)</label>
+                                <input type="text" class="form-input" placeholder="Digite o valor ou coluna do CSV">
+                            </div>
+                        </div>
+
+                        <!-- Flow Tab -->
+                        <div id="tab-flow" class="mt-6 hidden">
+                            <div class="form-group">
+                                <label class="form-label">Selecione um Fluxo</label>
+                                <select id="flow" class="form-select">
+                                    <option value="">Selecione um fluxo...</option>
+                                    <option value="1">Saudação Automática</option>
+                                    <option value="2">Fluxo de Vendas</option>
+                                    <option value="3">Suporte 24h</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3 - AUDIENCE -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Público-alvo</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Seleção de Contatos</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <button type="button" class="btn-secondary" onclick="selectContactType('csv')">📤 Upload CSV</button>
+                            <button type="button" class="btn-secondary" onclick="selectContactType('list')">📋 Lista de Contatos</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Números para envio</label>
+                        <textarea class="form-textarea" id="phone-numbers" placeholder="Cole os números aqui (um por linha) ou faça upload de CSV"></textarea>
+                    </div>
+                </div>
+
+                <!-- STEP 4 - SCHEDULING -->
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Agendamento</div>
+                    </div>
+
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label class="form-label">Data de Envio</label>
+                            <input type="date" id="send-date" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Hora de Envio</label>
+                            <input type="time" id="send-time" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Velocidade de Envio</label>
+                        <select id="speed" class="form-select">
+                            <option value="slow">Lenta (1 msg a cada 5 segundos)</option>
+                            <option value="normal" selected>Normal (1 msg a cada 2 segundos)</option>
+                            <option value="fast">Rápida (1 msg a cada 1 segundo)</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+
+            <!-- FOOTER -->
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeNewCampaignModal()">Cancelar</button>
+                <button type="submit" form="form-campanha" class="btn-create">Criar Campanha</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://vortex-saas-backend-production.up.railway.app/api';
+        let userId = localStorage.getItem('userId') || 1;
+        let authToken = localStorage.getItem('authToken');
+
+        function openNewCampaignModal() {
+            document.getElementById('modal-campanha').classList.remove('hidden');
+        }
+
+        function closeNewCampaignModal() {
+            document.getElementById('modal-campanha').classList.add('hidden');
+        }
+
+        function selectChannel(channel, element) {
+            document.querySelectorAll('.channel-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('channel').value = channel;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+        }
+
+        function syncTemplates() {
+            alert('Templates sincronizados com sucesso!');
+        }
+
+        function selectContactType(type) {
+            if (type === 'csv') {
+                // Simular upload
+                alert('Selecione um arquivo CSV com os contatos');
+            } else {
+                alert('Abrir lista de contatos');
+            }
+        }
+
+        // Form submission
+        document.getElementById('form-campanha').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const campaignName = document.getElementById('campaign-name').value;
+            const channel = document.getElementById('channel').value;
+            const instance = document.getElementById('instance').value;
+            const template = document.getElementById('template').value;
+
+            if (!campaignName || !instance || !template) {
+                alert('Preencha todos os campos obrigatórios');
+                return;
+            }
+
+            try {
+                // Simular criação de campanha
+                alert(`Campanha "${campaignName}" criada com sucesso!`);
+                closeNewCampaignModal();
+                loadCampaigns();
+            } catch (error) {
+                console.error('Erro ao criar campanha:', error);
+                alert('Erro ao criar campanha');
+            }
+        });
+
+        async function loadCampaigns() {
+            // Mock data for demonstration
+            const mockCampaigns = [
+                {
+                    id: 1,
+                    name: 'Black Friday 2026',
+                    channel: 'WhatsApp Oficial',
+                    instance: 'Andre Maggi',
+                    status: 'active',
+                    messages_sent: 1250,
+                    messages_total: 1500,
+                    created_at: '2026-10-01'
+                },
+                {
+                    id: 2,
+                    name: 'Promoção de Verão',
+                    channel: 'WhatsApp',
+                    instance: 'Bmp Utilidades',
+                    status: 'scheduled',
+                    messages_sent: 0,
+                    messages_total: 800,
+                    created_at: '2026-10-03'
+                }
+            ];
+
+            renderCampaigns(mockCampaigns);
+        }
+
+        function renderCampaigns(campaigns) {
+            const container = document.getElementById('campaigns-container');
+
+            if (campaigns.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-gray-500 mb-4">Nenhuma campanha criada ainda</p>
+                        <button class="btn-primary" onclick="openNewCampaignModal()">+ Criar Primeira Campanha</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = campaigns.map(campaign => {
+                const statusClass = campaign.status === 'active' ? 'status-active' :
+                                   campaign.status === 'scheduled' ? 'status-scheduled' :
+                                   campaign.status === 'paused' ? 'status-paused' : 'status-completed';
+
+                const statusText = campaign.status === 'active' ? 'Ativa' :
+                                  campaign.status === 'scheduled' ? 'Agendada' :
+                                  campaign.status === 'paused' ? 'Pausada' : 'Concluída';
+
+                return `
+                    <div class="campaign-card">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-lg">${campaign.name}</h3>
+                                <p class="text-gray-600 text-sm mt-1">${campaign.channel} • ${campaign.instance}</p>
+                            </div>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4 mb-4 text-sm">
+                            <div>
+                                <p class="text-gray-600">Mensagens Enviadas</p>
+                                <p class="text-lg font-bold text-gray-900">${campaign.messages_sent}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Total de Mensagens</p>
+                                <p class="text-lg font-bold text-gray-900">${campaign.messages_total}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Taxa de Entrega</p>
+                                <p class="text-lg font-bold text-gray-900">${Math.round((campaign.messages_sent / campaign.messages_total) * 100)}%</p>
+                            </div>
+                        </div>
+
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: ${(campaign.messages_sent / campaign.messages_total) * 100}%"></div>
+                        </div>
+
+                        <div class="mt-4 flex gap-2">
+                            <button class="btn-secondary flex-1">📊 Detalhes</button>
+                            <button class="btn-secondary flex-1">⚙️ Editar</button>
+                            <button class="btn-secondary flex-1">⏸️ Pausar</button>
+                            <button class="btn-secondary flex-1">🗑️ Deletar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update stats
+            const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
+            const completedCampaigns = campaigns.filter(c => c.status === 'completed').length;
+            const totalMessages = campaigns.reduce((sum, c) => sum + c.messages_sent, 0);
+
+            document.getElementById('total-campaigns').textContent = campaigns.length;
+            document.getElementById('active-campaigns').textContent = activeCampaigns;
+            document.getElementById('completed-campaigns').textContent = completedCampaigns;
+            document.getElementById('total-messages').textContent = totalMessages.toLocaleString('pt-BR');
+        }
+
+        // Load campaigns on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCampaigns();
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('modal-campanha').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal-campanha')) {
+                closeNewCampaignModal();
+            }
+        });
+    </script>
+</body>
+</html>
