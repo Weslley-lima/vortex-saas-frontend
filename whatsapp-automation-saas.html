@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp SaaS - Automações e Fluxos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#25D366',
+                        darkBg: '#0f0f0f',
+                        darkCard: '#1a1a1a',
+                        darkBorder: '#2a2a2a'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #e5e5e5;
+        }
+        .sidebar-active {
+            background-color: rgba(37, 211, 102, 0.1);
+            border-left: 3px solid #25D366;
+            color: #25D366;
+            padding-left: calc(0.75rem - 3px);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.15);
+        }
+        .badge-connected {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .badge-disconnected {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .badge-active {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+        .qr-modal-overlay {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        #cameraPreview {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 12px;
+            border: 2px solid #25D366;
+        }
+        .flow-node {
+            background-color: #1a1a1a;
+            border: 2px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px;
+            cursor: grab;
+            transition: all 0.3s;
+            min-width: 120px;
+            text-align: center;
+        }
+        .flow-node:hover {
+            border-color: #25D366;
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.2);
+        }
+        .flow-node.active {
+            border-color: #25D366;
+            background-color: rgba(37, 211, 102, 0.1);
+        }
+        .tab-active {
+            color: #25D366;
+            border-bottom: 2px solid #25D366;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4b5563;
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #25D366;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .sidebar-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        @media (max-width: 767px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-gray-200">
+    <div class="flex h-screen flex-col md:flex-row">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebarOverlay" class="hidden md:hidden fixed inset-0 sidebar-overlay z-40" onclick="closeSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar w-64 bg-darkCard border-r border-darkBorder fixed md:relative h-screen overflow-y-auto z-50 transform md:transform-none">
+            <div class="p-4 md:p-6">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-5.031 1.378c-1.87 1.246-3.045 3.006-3.045 5.411 0 2.552 1.333 4.861 3.834 6.32l-1.02 3.71c-.18.658.083 1.338.72 1.513.637.175 1.331-.41 1.512-1.068l.546-1.99c.537.251 1.06.385 1.484.385 3.849 0 6.956-3.107 6.956-6.956 0-3.848-3.107-6.963-6.956-6.963z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-xl font-bold text-white">WhatsApp SaaS</h1>
+                        <p class="text-xs text-gray-400">Automações</p>
+                    </div>
+                </div>
+
+                <nav class="space-y-2" id="navMenu">
+                    <div class="nav-item sidebar-active p-3 rounded-lg cursor-pointer flex items-center gap-3 transition" data-tab="instancias">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10-18v6h8V3h-8zm0 12v6h8v-6h-8z"/>
+                        </svg>
+                        <span>Instâncias</span>
+                    </div>
+                    <div class="nav-item p-3 rounded-lg cursor-pointer flex items-center gap-3 text-gray-400 hover:text-gray-200 transition" data-tab="automacoes">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                        </svg>
+                        <span>Automações</span>
+                    </div>
+                    <div class="nav-item p-3 rounded-lg cursor-pointer flex items-center gap-3 text-gray-400 hover:text-gray-200 transition" data-tab="fluxos">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 5H7c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h2v2h2v-2h2v2h2v-2h2c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-2V3h-2v2h-2V3H9v2zm11 14H4V8h16v11z"/>
+                        </svg>
+                        <span>Fluxos</span>
+                    </div>
+                    <div class="nav-item p-3 rounded-lg cursor-pointer flex items-center gap-3 text-gray-400 hover:text-gray-200 transition" data-tab="qrcode">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M3 11h8V3H3v8zm0 8h8v-8H3v8zm8-16v6h8V3h-8zm8 8h-6v6h6v-6z"/>
+                        </svg>
+                        <span>Ler QR</span>
+                    </div>
+                </nav>
+
+                <div class="absolute bottom-6 left-4 right-4 md:left-6 md:right-6 bg-darkBorder bg-opacity-50 p-4 rounded-lg">
+                    <p class="text-xs text-gray-400 mb-3">Status: <span class="text-primary font-semibold">Ativo</span></p>
+                    <div class="w-full bg-darkBg rounded-full h-2 mb-2">
+                        <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+                    </div>
+                    <p class="text-xs text-gray-400">5 automações rodando</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto bg-gradient-to-br from-darkBg via-darkBg to-gray-900 w-full">
+            <!-- Mobile Header -->
+            <div class="md:hidden flex items-center justify-between bg-darkCard border-b border-darkBorder p-4 sticky top-0 z-30">
+                <button onclick="openSidebar()" class="p-2 hover:bg-darkBorder rounded-lg transition">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </button>
+                <h2 class="font-bold text-white text-sm">WhatsApp SaaS</h2>
+                <div class="w-6"></div>
+            </div>
+
+            <div class="p-4 md:p-8">
+
+                <!-- TAB: INSTÂNCIAS -->
+                <div id="tab-instancias" class="tab-content">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8 gap-4">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">Minhas Instâncias</h2>
+                            <p class="text-xs md:text-base text-gray-400">Gerencie suas conexões do WhatsApp</p>
+                        </div>
+                        <button onclick="openNewInstanceModal()" class="bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 md:py-3 md:px-6 rounded-lg transition flex items-center justify-center gap-2 text-sm md:text-base">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Criar Nova</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+                        <div class="bg-darkCard border border-darkBorder rounded-lg p-4 md:p-6">
+                            <p class="text-gray-400 text-xs md:text-sm mb-2">Total de Instâncias</p>
+                            <p class="text-2xl md:text-3xl font-bold text-white" id="totalInstances">3</p>
+                        </div>
+                        <div class="bg-darkCard border border-darkBorder rounded-lg p-4 md:p-6">
+                            <p class="text-gray-400 text-xs md:text-sm mb-2">Conectadas</p>
+                            <p class="text-2xl md:text-3xl font-bold text-primary" id="connectedInstances">2</p>
+                        </div>
+                        <div class="bg-darkCard border border-darkBorder rounded-lg p-4 md:p-6">
+                            <p class="text-gray-400 text-xs md:text-sm mb-2">Desconectadas</p>
+                            <p class="text-2xl md:text-3xl font-bold text-red-500" id="disconnectedInstances">1</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" id="instancesContainer">
+                    </div>
+                </div>
+
+                <!-- TAB: AUTOMAÇÕES -->
+                <div id="tab-automacoes" class="tab-content hidden">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8 gap-4">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">Automações</h2>
+                            <p class="text-xs md:text-base text-gray-400">Crie e gerencie automações</p>
+                        </div>
+                        <button onclick="openNewAutomationModal()" class="bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 md:py-3 md:px-6 rounded-lg transition flex items-center justify-center gap-2 text-sm md:text-base">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Nova Automação</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 md:gap-6" id="automationsContainer">
+                    </div>
+                </div>
+
+                <!-- TAB: FLUXOS -->
+                <div id="tab-fluxos" class="tab-content hidden">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 md:mb-8 gap-4">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">Fluxos (Workflows)</h2>
+                            <p class="text-xs md:text-base text-gray-400">Construa fluxos visuais</p>
+                        </div>
+                        <button onclick="openNewFlowModal()" class="bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 md:py-3 md:px-6 rounded-lg transition flex items-center justify-center gap-2 text-sm md:text-base">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Novo Fluxo</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 md:gap-6" id="flowsContainer">
+                    </div>
+                </div>
+
+                <!-- TAB: LER QR CODE -->
+                <div id="tab-qrcode" class="tab-content hidden">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">Ler QR Code</h2>
+                        <p class="text-xs md:text-base text-gray-400 mb-6 md:mb-8">Escaneie QR Code para conectar</p>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                            <!-- Camera Section -->
+                            <div class="bg-darkCard border border-darkBorder rounded-lg p-4 md:p-6">
+                                <h3 class="text-lg md:text-xl font-bold text-white mb-4">Câmera</h3>
+                                <div class="flex flex-col gap-4">
+                                    <video id="cameraPreview" style="display:none;"></video>
+                                    <canvas id="canvasPreview" style="display:none;"></canvas>
+
+                                    <div id="cameraPlaceholder" class="bg-darkBg rounded-lg p-6 md:p-8 text-center border-2 border-dashed border-darkBorder">
+                                        <svg class="w-12 md:w-16 h-12 md:h-16 mx-auto text-gray-500 mb-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                                        </svg>
+                                        <p class="text-gray-400 text-sm">Câmera desativada</p>
+                                    </div>
+
+                                    <button onclick="startCamera()" id="startCameraBtn" class="bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 rounded-lg transition text-sm md:text-base">
+                                        Iniciar Câmera
+                                    </button>
+                                    <button onclick="stopCamera()" id="stopCameraBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition hidden text-sm md:text-base">
+                                        Parar Câmera
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- QR Code Results -->
+                            <div class="bg-darkCard border border-darkBorder rounded-lg p-4 md:p-6">
+                                <h3 class="text-lg md:text-xl font-bold text-white mb-4">QR Code Detectado</h3>
+                                <div id="qrResults" class="bg-darkBg rounded-lg p-4 md:p-6 text-center text-gray-400 text-sm">
+                                    <p>Nenhum QR Code detectado ainda</p>
+                                </div>
+
+                                <div class="mt-6 p-4 bg-blue-600 bg-opacity-20 rounded-lg border border-blue-500">
+                                    <p class="text-xs md:text-sm text-blue-200">
+                                        💡 <strong>Dica:</strong> Posicione o QR Code em frente à câmera.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Nova Instância -->
+    <div id="newInstanceModal" class="hidden fixed inset-0 qr-modal-overlay flex items-center justify-center z-50 p-4">
+        <div class="bg-darkCard rounded-lg p-6 md:p-8 max-w-md w-full border border-darkBorder max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg md:text-xl font-bold text-white">Criar Nova Instância</h3>
+                <button onclick="closeNewInstanceModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome da Instância</label>
+                    <input type="text" id="instanceName" placeholder="Ex: Vendas" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Número do WhatsApp</label>
+                    <input type="text" id="instancePhone" placeholder="55 11 99999-9999" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary text-sm">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeNewInstanceModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                    Cancelar
+                </button>
+                <button onclick="createNewInstance()" class="flex-1 bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 rounded-lg transition text-sm">
+                    Criar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Nova Automação -->
+    <div id="newAutomationModal" class="hidden fixed inset-0 qr-modal-overlay flex items-center justify-center z-50 p-4">
+        <div class="bg-darkCard rounded-lg p-6 md:p-8 max-w-2xl w-full border border-darkBorder max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg md:text-xl font-bold text-white">Nova Automação</h3>
+                <button onclick="closeNewAutomationModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome da Automação</label>
+                    <input type="text" id="automationName" placeholder="Ex: Resposta Automática" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Instância</label>
+                    <select id="automationInstance" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary text-sm">
+                        <option>Selecionar instância...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Tipo de Gatilho</label>
+                    <select id="automationTrigger" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary text-sm">
+                        <option value="message">Mensagem Recebida</option>
+                        <option value="keyword">Palavra-chave</option>
+                        <option value="contact">Novo Contato</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Ação</label>
+                    <select id="automationAction" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary text-sm">
+                        <option value="reply">Responder com Mensagem</option>
+                        <option value="forward">Encaminhar para Contato</option>
+                        <option value="webhook">Enviar para Webhook</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Conteúdo/Valor</label>
+                    <textarea id="automationContent" placeholder="Mensagem ou valor da ação" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary h-20 text-sm"></textarea>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeNewAutomationModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                    Cancelar
+                </button>
+                <button onclick="createNewAutomation()" class="flex-1 bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 rounded-lg transition text-sm">
+                    Criar Automação
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Novo Fluxo -->
+    <div id="newFlowModal" class="hidden fixed inset-0 qr-modal-overlay flex items-center justify-center z-50 p-4">
+        <div class="bg-darkCard rounded-lg p-6 md:p-8 max-w-md w-full border border-darkBorder max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg md:text-xl font-bold text-white">Novo Fluxo</h3>
+                <button onclick="closeNewFlowModal()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome do Fluxo</label>
+                    <input type="text" id="flowName" placeholder="Ex: Funil de Vendas" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Descrição</label>
+                    <textarea id="flowDescription" placeholder="Descrição do fluxo" class="w-full bg-darkBg border border-darkBorder rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary h-20 text-sm"></textarea>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeNewFlowModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition text-sm">
+                    Cancelar
+                </button>
+                <button onclick="createNewFlow()" class="flex-1 bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 rounded-lg transition text-sm">
+                    Criar Fluxo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Controlar sidebar em mobile
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.remove('hidden');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.add('hidden');
+        }
+
+        // Dados fictícios
+        let instances = [
+            {
+                id: 1,
+                name: 'Vendas Principal',
+                phone: '+55 11 98765-4321',
+                status: 'conectado',
+                createdAt: '2025-10-01',
+                messagesCount: 1248
+            },
+            {
+                id: 2,
+                name: 'Suporte ao Cliente',
+                phone: '+55 11 99876-5432',
+                status: 'conectado',
+                createdAt: '2025-09-15',
+                messagesCount: 856
+            },
+            {
+                id: 3,
+                name: 'Marketing Campaigns',
+                phone: '+55 11 97654-3210',
+                status: 'desconectado',
+                createdAt: '2025-08-20',
+                messagesCount: 342
+            }
+        ];
+
+        let automations = [
+            {
+                id: 1,
+                name: 'Resposta Automática Horário Comercial',
+                instance: 'Vendas Principal',
+                trigger: 'Mensagem Recebida',
+                action: 'Responder com Mensagem',
+                active: true,
+                messagesProcessed: 2451
+            },
+            {
+                id: 2,
+                name: 'Encaminhar Leads para CRM',
+                instance: 'Suporte ao Cliente',
+                trigger: 'Palavra-chave: lead',
+                action: 'Enviar para Webhook',
+                active: true,
+                messagesProcessed: 342
+            },
+            {
+                id: 3,
+                name: 'Notificação de Novo Contato',
+                instance: 'Marketing Campaigns',
+                trigger: 'Novo Contato',
+                action: 'Enviar para Webhook',
+                active: false,
+                messagesProcessed: 0
+            }
+        ];
+
+        let flows = [
+            {
+                id: 1,
+                name: 'Funil de Vendas',
+                description: 'Fluxo de captura e qualificação de leads',
+                nodes: 5,
+                active: true,
+                created: '2025-09-20'
+            },
+            {
+                id: 2,
+                name: 'Suporte Técnico',
+                description: 'Fluxo de atendimento técnico automático',
+                nodes: 8,
+                active: true,
+                created: '2025-08-15'
+            }
+        ];
+
+        let cameraStream = null;
+        let isScanning = false;
+
+        // Navegação entre abas
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                switchTab(tabName);
+            });
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('sidebar-active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('sidebar-active');
+
+            if (tabName === 'instancias') renderInstances();
+            if (tabName === 'automacoes') renderAutomations();
+            if (tabName === 'fluxos') renderFlows();
+
+            closeSidebar();
+        }
+
+        // INSTÂNCIAS
+        function renderInstances() {
+            const container = document.getElementById('instancesContainer');
+            container.innerHTML = '';
+
+            instances.forEach(instance => {
+                const statusClass = instance.status === 'conectado' ? 'badge-connected' : 'badge-disconnected';
+                const statusText = instance.status === 'conectado' ? 'Conectado' : 'Desconectado';
+                const statusIcon = instance.status === 'conectado' ? '🟢' : '🔴';
+
+                const card = document.createElement('div');
+                card.className = 'bg-darkCard border border-darkBorder rounded-lg p-4 md:p-6 card-hover transition';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="min-w-0">
+                            <h3 class="text-base md:text-lg font-bold text-white mb-1 truncate">${instance.name}</h3>
+                            <p class="text-xs md:text-sm text-gray-400 truncate">${instance.phone}</p>
+                        </div>
+                        <span class="text-xs font-semibold px-2 md:px-3 py-1 rounded-full ${statusClass} flex-shrink-0 ml-2">
+                            ${statusIcon} <span class="hidden sm:inline">${statusText}</span>
+                        </span>
+                    </div>
+
+                    <div class="mb-4 pb-4 border-b border-darkBorder">
+                        <div class="flex justify-between text-xs md:text-sm mb-2">
+                            <span class="text-gray-400">Mensagens enviadas</span>
+                            <span class="text-white font-semibold">${instance.messagesCount}</span>
+                        </div>
+                        <div class="flex justify-between text-xs md:text-sm">
+                            <span class="text-gray-400">Conectada em</span>
+                            <span class="text-white font-semibold">${new Date(instance.createdAt).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button class="flex-1 bg-primary hover:bg-green-500 text-black font-semibold py-2 px-3 rounded-lg transition text-xs md:text-sm flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 11h8V3H3v8zm0 8h8v-8H3v8zm8-16v8h8V3h-8zm8 8h-8v8h8v-8z"/>
+                            </svg>
+                            <span>QR Code</span>
+                        </button>
+                        <button onclick="deleteInstance(${instance.id})" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-lg transition text-xs md:text-sm flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-9l-1 1H5v2h14V4z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Excluir</span>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = instances.length;
+            const connected = instances.filter(i => i.status === 'conectado').length;
+            const disconnected = total - connected;
+
+            document.getElementById('totalInstances').textContent = total;
+            document.getElementById('connectedInstances').textContent = connected;
+            document.getElementById('disconnectedInstances').textContent = disconnected;
+        }
+
+        // AUTOMAÇÕES
+        function renderAutomations() {
+            const container = document.getElementById('automationsContainer');
+            container.innerHTML = '';
+
+            automations.forEach(auto => {
+                const statusClass = auto.active ? 'badge-active' : 'badge-disconnected';
+                const statusText = auto.active ? 'Ativa' : 'Inativa';
+                const statusIcon = auto.active ? '🔵' : '⭕';
+
+                const card = document.createElement('div');
+                card.className = 'bg-darkCard border border-darkBorder rounded-lg p-4 md:p-6 card-hover transition';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="min-w-0">
+                            <h3 class="text-base md:text-lg font-bold text-white mb-1 truncate">${auto.name}</h3>
+                            <p class="text-xs md:text-sm text-gray-400 truncate">${auto.instance}</p>
+                        </div>
+                        <span class="text-xs font-semibold px-2 md:px-3 py-1 rounded-full ${statusClass} flex-shrink-0">
+                            ${statusIcon} <span class="hidden sm:inline">${statusText}</span>
+                        </span>
+                    </div>
+
+                    <div class="mb-4 pb-4 border-b border-darkBorder">
+                        <div class="flex justify-between text-xs md:text-sm mb-2">
+                            <span class="text-gray-400">Gatilho:</span>
+                            <span class="text-white font-semibold truncate">${auto.trigger}</span>
+                        </div>
+                        <div class="flex justify-between text-xs md:text-sm mb-2">
+                            <span class="text-gray-400">Ação:</span>
+                            <span class="text-white font-semibold truncate">${auto.action}</span>
+                        </div>
+                        <div class="flex justify-between text-xs md:text-sm">
+                            <span class="text-gray-400">Processadas:</span>
+                            <span class="text-primary font-semibold">${auto.messagesProcessed}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${auto.active ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="text-gray-400 text-xs md:text-sm">${auto.active ? 'Ativa' : 'Inativa'}</span>
+                        <button onclick="deleteAutomation(${auto.id})" class="w-full sm:w-auto ml-0 sm:ml-auto bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded text-xs md:text-sm">
+                            Excluir
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // FLUXOS
+        function renderFlows() {
+            const container = document.getElementById('flowsContainer');
+            container.innerHTML = '';
+
+            flows.forEach(flow => {
+                const statusClass = flow.active ? 'badge-active' : 'badge-disconnected';
+                const statusText = flow.active ? 'Ativo' : 'Inativo';
+
+                const card = document.createElement('div');
+                card.className = 'bg-darkCard border border-darkBorder rounded-lg p-4 md:p-6 card-hover transition';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="min-w-0">
+                            <h3 class="text-base md:text-lg font-bold text-white mb-1 truncate">${flow.name}</h3>
+                            <p class="text-xs md:text-sm text-gray-400 truncate">${flow.description}</p>
+                        </div>
+                        <span class="text-xs font-semibold px-2 md:px-3 py-1 rounded-full ${statusClass} flex-shrink-0 ml-2">
+                            ${statusText}
+                        </span>
+                    </div>
+
+                    <div class="mb-4 pb-4 border-b border-darkBorder">
+                        <div class="flex justify-between text-xs md:text-sm mb-2">
+                            <span class="text-gray-400">Nós do fluxo:</span>
+                            <span class="text-white font-semibold">${flow.nodes}</span>
+                        </div>
+                        <div class="flex justify-between text-xs md:text-sm">
+                            <span class="text-gray-400">Criado em:</span>
+                            <span class="text-white font-semibold">${new Date(flow.created).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button onclick="editFlow(${flow.id})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition text-xs md:text-sm">
+                            Editar Fluxo
+                        </button>
+                        <button onclick="deleteFlow(${flow.id})" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition text-xs md:text-sm">
+                            Excluir
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // CÂMERA E QR CODE
+        async function startCamera() {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+
+                const video = document.getElementById('cameraPreview');
+                video.srcObject = cameraStream;
+                video.play();
+                video.style.display = 'block';
+
+                document.getElementById('cameraPlaceholder').style.display = 'none';
+                document.getElementById('startCameraBtn').classList.add('hidden');
+                document.getElementById('stopCameraBtn').classList.remove('hidden');
+
+                isScanning = true;
+                scanQRCode();
+            } catch (err) {
+                alert('Erro ao acessar câmera: ' + err.message);
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+
+            document.getElementById('cameraPreview').style.display = 'none';
+            document.getElementById('cameraPlaceholder').style.display = 'block';
+            document.getElementById('startCameraBtn').classList.remove('hidden');
+            document.getElementById('stopCameraBtn').classList.add('hidden');
+
+            isScanning = false;
+        }
+
+        function scanQRCode() {
+            if (!isScanning) return;
+
+            const video = document.getElementById('cameraPreview');
+            const canvas = document.getElementById('canvasPreview');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code) {
+                displayQRResult(code.data);
+                stopCamera();
+            } else {
+                requestAnimationFrame(scanQRCode);
+            }
+        }
+
+        function displayQRResult(data) {
+            const resultsDiv = document.getElementById('qrResults');
+
+            try {
+                const qrData = JSON.parse(data);
+                resultsDiv.innerHTML = `
+                    <div class="text-left">
+                        <div class="bg-darkCard p-4 rounded-lg mb-4 border border-primary">
+                            <p class="text-xs md:text-sm text-gray-400 mb-2"><strong>Dados detectados:</strong></p>
+                            <pre class="text-xs text-green-400 overflow-auto">${JSON.stringify(qrData, null, 2)}</pre>
+                        </div>
+                        <button onclick="connectQRInstance()" class="w-full bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 rounded-lg transition text-sm">
+                            Conectar Instância
+                        </button>
+                    </div>
+                `;
+            } catch (e) {
+                resultsDiv.innerHTML = `
+                    <div class="text-left">
+                        <p class="text-green-400 font-mono text-xs break-all mb-4">${data}</p>
+                        <button onclick="connectQRInstance()" class="w-full bg-primary hover:bg-green-500 text-black font-bold py-2 px-4 rounded-lg transition text-sm">
+                            Conectar com este QR
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function connectQRInstance() {
+            alert('✅ Instância conectada com sucesso via QR Code!');
+        }
+
+        // MODAIS
+        function openNewInstanceModal() {
+            document.getElementById('newInstanceModal').classList.remove('hidden');
+            updateInstanceSelect();
+        }
+
+        function closeNewInstanceModal() {
+            document.getElementById('newInstanceModal').classList.add('hidden');
+        }
+
+        function openNewAutomationModal() {
+            document.getElementById('newAutomationModal').classList.remove('hidden');
+            updateInstanceSelect();
+        }
+
+        function closeNewAutomationModal() {
+            document.getElementById('newAutomationModal').classList.add('hidden');
+        }
+
+        function openNewFlowModal() {
+            document.getElementById('newFlowModal').classList.remove('hidden');
+        }
+
+        function closeNewFlowModal() {
+            document.getElementById('newFlowModal').classList.add('hidden');
+        }
+
+        function updateInstanceSelect() {
+            const select = document.getElementById('automationInstance');
+            select.innerHTML = '<option>Selecionar instância...</option>';
+            instances.forEach(inst => {
+                const option = document.createElement('option');
+                option.value = inst.id;
+                option.textContent = inst.name;
+                select.appendChild(option);
+            });
+        }
+
+        // CRIAR ITENS
+        function createNewInstance() {
+            const name = document.getElementById('instanceName').value.trim();
+            const phone = document.getElementById('instancePhone').value.trim();
+
+            if (!name || !phone) {
+                alert('Preencha todos os campos');
+                return;
+            }
+
+            instances.push({
+                id: Math.max(...instances.map(i => i.id), 0) + 1,
+                name, phone,
+                status: 'desconectado',
+                createdAt: new Date().toISOString().split('T')[0],
+                messagesCount: 0
+            });
+
+            renderInstances();
+            closeNewInstanceModal();
+        }
+
+        function createNewAutomation() {
+            const name = document.getElementById('automationName').value.trim();
+            if (!name) {
+                alert('Dê um nome à automação');
+                return;
+            }
+
+            automations.push({
+                id: Math.max(...automations.map(a => a.id), 0) + 1,
+                name,
+                instance: document.getElementById('automationInstance').value || 'Instância',
+                trigger: document.getElementById('automationTrigger').value,
+                action: document.getElementById('automationAction').value,
+                active: true,
+                messagesProcessed: 0
+            });
+
+            renderAutomations();
+            closeNewAutomationModal();
+        }
+
+        function createNewFlow() {
+            const name = document.getElementById('flowName').value.trim();
+            if (!name) {
+                alert('Dê um nome ao fluxo');
+                return;
+            }
+
+            flows.push({
+                id: Math.max(...flows.map(f => f.id), 0) + 1,
+                name,
+                description: document.getElementById('flowDescription').value,
+                nodes: 1,
+                active: true,
+                created: new Date().toISOString().split('T')[0]
+            });
+
+            renderFlows();
+            closeNewFlowModal();
+        }
+
+        // DELETAR ITENS
+        function deleteInstance(id) {
+            if (confirm('Excluir esta instância?')) {
+                instances = instances.filter(i => i.id !== id);
+                renderInstances();
+            }
+        }
+
+        function deleteAutomation(id) {
+            if (confirm('Excluir esta automação?')) {
+                automations = automations.filter(a => a.id !== id);
+                renderAutomations();
+            }
+        }
+
+        function deleteFlow(id) {
+            if (confirm('Excluir este fluxo?')) {
+                flows = flows.filter(f => f.id !== id);
+                renderFlows();
+            }
+        }
+
+        function editFlow(id) {
+            alert('🔧 Editor de fluxo visual será aberto para o fluxo #' + id);
+        }
+
+        // FECHAR MODAIS COM ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeNewInstanceModal();
+                closeNewAutomationModal();
+                closeNewFlowModal();
+                closeSidebar();
+            }
+        });
+
+        // INICIALIZAR
+        renderInstances();
+    </script>
+</body>
+</html>

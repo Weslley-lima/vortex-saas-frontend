@@ -1,0 +1,16 @@
+{
+  "buildCommand": "echo 'Static HTML - no build needed'",
+  "outputDirectory": "./",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/(.*).html",
+      "destination": "/$1.html"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
